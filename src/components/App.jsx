@@ -3,12 +3,28 @@ import { nanoid } from 'nanoid';
 import { ContactForm } from './ContactForm/ContactForm';
 import { ContactList } from './ContactList/ContactList';
 import { Filter } from './Filter/Filter';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export class App extends Component {
   state = {
     contacts: [],
     filter: '',
   };
+
+  componentDidMount() {
+    const contacts = JSON.parse(localStorage.getItem('contacts'));
+    if (contacts) {
+      this.setState({ contacts });
+    }
+  }
+
+  componentDidUpdate(_, prevState) {
+    const { contacts } = this.state;
+    if (contacts !== prevState.contacts) {
+      localStorage.setItem('contacts', JSON.stringify(contacts));
+    }
+  }
 
   addContact = data => {
     const contact = { id: nanoid(), ...data };
@@ -18,7 +34,11 @@ export class App extends Component {
         ({ name }) => name.toLowerCase() === normalizeName
       )
     ) {
-      alert(`${contact.name} is already in contacts`);
+      toast.error(`${contact.name} is already in contacts`, {
+        position: "top-center",
+        autoClose: 3000,
+        theme: "colored",
+        });
       return;
     }
 
@@ -45,19 +65,6 @@ export class App extends Component {
     );
   };
 
-  componentDidMount() {
-    const contacts = JSON.parse(localStorage.getItem('contacts'));
-    if (contacts) {
-      this.setState({ contacts: contacts });
-    }
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
-
   render() {
     const visibleContacts = this.getVisibleContacts();
     return (
@@ -70,6 +77,7 @@ export class App extends Component {
           contacts={visibleContacts}
           onDeleteContact={this.deleteContact}
         />
+        <ToastContainer/>
       </>
     );
   }
